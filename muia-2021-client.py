@@ -119,12 +119,12 @@ def avoid(sonar, blobs, coord):
         elif coord[1]< 0.5 and coord[1]>= 0.25:
             lspeed += 0.25      ##0.5
             rspeed += 0.25       ##0.5
-        elif coord[1]>= 0.5 and coord[1]< 0.7:
-            lspeed += 0.7
-            rspeed += 0.7 
+        elif coord[1]>= 0.5 and coord[1]< 0.8:
+            lspeed += 0.5  # 0.7
+            rspeed += 0.5
         else:
-            lspeed += 1.5       ##1.1
-            rspeed += 1.5       ##1.1
+            lspeed += 0.8       ##1.1
+            rspeed += 0.8       ##1.1
          
         #### obstacles ###############
         print('centrales:', sonar[3], sonar[4])
@@ -135,12 +135,12 @@ def avoid(sonar, blobs, coord):
         if sonar[3]< 0.18 or sonar[4]< 0.18: ## ~0.15
             #lspeed -= 3.0 ##2.0
             #rspeed -= 3.0
-            if  coord[0] < 0.35:
-                lspeed = 0.0
-                rspeed = 0.8
-            elif coord[0] > 0.65:
-                lspeed = 0.8
-                rspeed = 0.0
+            if  coord[0] < 0.4:
+                lspeed = -0.2
+                rspeed = 1.2
+            elif coord[0] > 0.6:
+                lspeed = 1.2
+                rspeed = -0.2
             else:
                 lspeed = 0.0
                 rspeed = 0.0
@@ -154,9 +154,9 @@ def avoid(sonar, blobs, coord):
             lspeed -= 0.5
             rspeed -= 0.5
         elif sonar[0]<0.7 and sonar[1] < 0.7:
-            lspeed += 2.0
+            lspeed += 1.5##2.0
         elif sonar[6]<0.7 and sonar[7] < 0.7:
-            rspeed += 2.0
+            rspeed += 1.5
         elif sonar[2]<0.7 and sonar[3] < 0.7:
             lspeed += 1.5    
         elif sonar[4]<0.7 and sonar[5] < 0.7:
