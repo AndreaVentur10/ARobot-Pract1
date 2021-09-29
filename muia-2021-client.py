@@ -133,12 +133,12 @@ def avoid(sonar, blobs, coord):
         print('Traseros:', sonar[8], sonar[9],sonar[10], sonar[11],sonar[12], sonar[13],sonar[14], sonar[15])
         
         if sonar[3]< 0.15 or sonar[4]< 0.15:
-            lspeed -= 2.0
-            rspeed -= 2.0
-        if sonar[3] < 0.5 and sonar[4] < 0.5 and coord[0]< 0.25:
-            lspeed -= 1.0
-            rspeed -= 1.0
-        if sonar[3] < 0.5 and sonar[4] < 0.5:
+            lspeed -= 3.0 ##2.0
+            rspeed -= 3.0
+        elif sonar[3] < 0.5 and sonar[4] < 0.5 and coord[0]< 0.25:
+            lspeed -= 1.5 ##1.0
+            rspeed -= 1.5
+        elif sonar[3] < 0.5 and sonar[4] < 0.5:
             lspeed -= 0.5
             rspeed -= 0.5
         elif sonar[0]<0.7 and sonar[1] < 0.7:
