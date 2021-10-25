@@ -218,7 +218,7 @@ def avoid(sonar, blobs, coord):
 # --------------------------------------------------------------------------
 def centerBall(coord):
     xtarget = 0.5                   # desirable speed
-    Kp = 3                          # constant
+    Kp = 3                          # constant 3
     error = xtarget - coord[0]      # positive is on the left, negative is on the right
     Px = Kp * error
 
@@ -226,7 +226,7 @@ def centerBall(coord):
 
 # --------------------------------------------------------------------------
 def fixDistance(coord):
-    dist_target = 0.65               # less is more 0.6
+    dist_target = 0.65              # less is more 0.6 0.65
     Kp = 4 #5
     dist_current = coord[2]         #( sonar[3] + sonar[4] )/ 2
     #print('ESTA ES LA Z:', coord[2])
@@ -239,51 +239,51 @@ def avoidCollisionFront(sonar):
     #print('CENTRAL [3]    : {}      CENTRAL [4]    : {}'.format(sonar[3], sonar[4]))
     f_right = sonar[4]
     f_left = sonar[3]
-    dist_target = 0.7
+    dist_target = 0.5
+    Kp = 1.5
+    Signal = 'OK'
+    error = 0.0
 
-    if f_right < 0.3 or f_left < 0.3:
+    if f_right < 0.3 or f_left < 0.3: #0.3
         if f_right < f_left:
             error = dist_target - f_right
-            W = 'CD'
+            Signal = 'CD'
         else:
             error = dist_target - f_left
-            W = 'CI'
-        return W, error
+            Signal = 'CI'
+        return Signal, error * Kp
     else:
-        return 'OK', 0.0
+        return Signal, error
 
 # --------------------------------------------------------------------------
 def avoidCollisionLat(sonar):
-
-
     #print('IZQ [1]    : {}   '.format(sonar[1]))
     #print('IZQ [2]    : {}   '.format(sonar[2]))
-    print('IZQ [0]    : {}   '.format(sonar[0]))
+    #print('IZQ [0]    : {}   '.format(sonar[0]))
     #print('DER [5]    : {}      DER [6]    : {}'.format(sonar[5], sonar[6]))
     #print('____________________________________________________________')
 
     right = sonar[6]            #sonar[4] + sonar[5] + sonar[7]
     left = sonar[1]             #sonar[3] + sonar[2] + sonar[0]
 
-    sep_target = 0.6            #separation desired
+    sep_target = 0.5            #separation desired
 
     Kp = 1 # 1
-    W = ''
+    Signal = 'OK'
     if left < 0.24 or right< 0.24:
 
         if right < left:
-            W = 'D'
+            Signal = 'D'
             error = sep_target - right
         else:
-            W = 'I'
+            Signal = 'I'
             error = sep_target - left
     else:
-        W = 'OK'
         error = 0.0
 
     Psep = Kp * error
 
-    return Psep, W
+    return Signal, Psep
 # --------------------------------------------------------------------------
 
 def main():
@@ -311,6 +311,7 @@ def main():
 
             blobs, coord = getImageBlob(clientID, hRobot)
             #print('###  ', blobs, coord)
+            #print(coord)
 
             # Planning
             vel_base = 0.7 #1.4 0.85
@@ -330,38 +331,51 @@ def main():
                 Pdepth = fixDistance(coord)
                 lspeed, rspeed = vel_base - Px + Pdepth,  vel_base + Px + Pdepth
                 sep_max = 0.55
-                PsepF, W = avoidCollisionFront(sonar)
-                PsepL, WL = avoidCollisionLat(sonar)
+                W, PsepF  = avoidCollisionFront(sonar)
+                WL, PsepL = avoidCollisionLat(sonar)
                 #vel_base = 1
-                if W == 'OK':           # si no hay choque frontal
-                    if WL != 'OK':      # si hay choque lateral
-                        if W == 'D':
-                            lspeed, rspeed = vel_base - Px + Pdepth + PsepL, 0.0  # vel_base + Px + Pdepth + Psep
-                        elif W == 'I':
-                            lspeed, rspeed = 0.0, vel_base + Px + Pdepth + PsepL  # vel_base - Px + Pdepth + Psep
-                else:
+                if W != 'OK':
 
                     if W == 'CD':
-                        lspeed, rspeed = vel_base - Px + Pdepth - PsepF,  0.0 #vel_base + Px + Pdepth + Psep
+                        lspeed, rspeed = vel_base + Px + Pdepth + PsepF, vel_base + Px + Pdepth - PsepF#vel_base + Px + Pdepth - PsepF #
+                        print('01')
                     elif W == 'CI':
-                        lspeed, rspeed = 0.0 , vel_base + Px + Pdepth - PsepF #vel_base - Px + Pdepth + Psep
+                        lspeed, rspeed = vel_base - Px + Pdepth - PsepF, vel_base - Px + Pdepth + PsepF# #
+                        print('09')
+                    #print('esto que es {} {}'.format(lspeed, rspeed))
+                    print('CHOQUE FRONTAL {} {}'.format(sonar[3], sonar[4]))
+
+                else:
+                    if WL != 'OK':  # si hay choque lateral
+                        if WL == 'D':
+                            lspeed, rspeed = vel_base + Px + Pdepth - PsepL, vel_base + Px + Pdepth + PsepL  # vel_base + Px + Pdepth + Psep
+                        elif WL == 'I':
+                            lspeed, rspeed = vel_base - Px + Pdepth + PsepL, vel_base + Px + Pdepth - PsepL  # vel_base - Px + Pdepth + Psep
+                        print('CHOQUE LATERAL')
 
             else:
-                PsepF, W = avoidCollisionFront(sonar)
-                PsepL, WL = avoidCollisionLat(sonar)
+                W, PsepF  = avoidCollisionFront(sonar)
+                WL, PsepL = avoidCollisionLat(sonar)
                 lspeed, rspeed = +1.4, -1.4
 
-                if W == 'OK':           # si no hay choque frontal
-                    if WL != 'OK':      # si hay choque lateral
-                        if WL == 'D':
-                            lspeed, rspeed = vel_base + PsepL, 0.0  # vel_base + Px + Pdepth + Psep
-                        elif WL == 'I':
-                            lspeed, rspeed = 0.0, vel_base + PsepL  # vel_base - Px + Pdepth + Psep
-                elif W != 'OK':
+                if W != 'OK':
+
                     if W == 'CD':
-                        lspeed, rspeed = vel_base - PsepF,  0.0 #vel_base + Px + Pdepth + Psep
+                        lspeed, rspeed = vel_base + Px + Pdepth + PsepF, vel_base + Px + Pdepth - PsepF  # vel_base + Px + Pdepth - PsepF #
+                        print('01')
                     elif W == 'CI':
-                        lspeed, rspeed = 0.0 , vel_base - PsepF #vel_base - Px + Pdepth + Psep"""
+                        lspeed, rspeed = vel_base - Px + Pdepth - PsepF, vel_base - Px + Pdepth + PsepF  # #
+                        print('09')
+                    # print('esto que es {} {}'.format(lspeed, rspeed))
+                    print('CHOQUE FRONTAL {} {}'.format(sonar[3], sonar[4]))
+
+                else:
+                    if WL != 'OK':  # si hay choque lateral
+                        if WL == 'D':
+                            lspeed, rspeed = vel_base + Px + Pdepth - PsepL, vel_base + Px + Pdepth + PsepL  # vel_base + Px + Pdepth + Psep
+                        elif WL == 'I':
+                            lspeed, rspeed = vel_base - Px + Pdepth + PsepL, vel_base + Px + Pdepth - PsepL  # vel_base - Px + Pdepth + Psep
+                        print('CHOQUE LATERAL')
 
 
             # Action
